@@ -3,211 +3,185 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="连续 90 天，把每天一张行测试卷做成一个小游戏。">
-  <title>Xingce Daily Quest</title>
-  <style>
-    :root {
-      color-scheme: dark;
-      --bg: #07101f;
-      --panel: rgba(12, 25, 48, 0.82);
-      --line: rgba(124, 173, 255, 0.22);
-      --text: #edf4ff;
-      --muted: #9db0cb;
-      --accent: #69e6ff;
-      --accent-2: #8f7dff;
-      --good: #6fffc1;
-    }
-    * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      min-height: 100vh;
-      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      color: var(--text);
-      background:
-        radial-gradient(circle at 18% 12%, rgba(55, 136, 255, .24), transparent 32%),
-        radial-gradient(circle at 80% 16%, rgba(143, 125, 255, .18), transparent 26%),
-        linear-gradient(180deg, #07101f 0%, #091426 100%);
-    }
-    body::before {
-      content: "";
-      position: fixed;
-      inset: 0;
-      pointer-events: none;
-      opacity: .3;
-      background-image:
-        linear-gradient(rgba(105, 230, 255, .06) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(105, 230, 255, .06) 1px, transparent 1px);
-      background-size: 34px 34px;
-    }
-    main { width: min(1080px, calc(100% - 32px)); margin: 0 auto; padding: 48px 0 72px; }
-    .hero {
-      display: grid;
-      grid-template-columns: 1.2fr .8fr;
-      gap: 28px;
-      align-items: center;
-      min-height: 480px;
-    }
-    .badge {
-      display: inline-flex;
-      gap: 8px;
-      align-items: center;
-      padding: 7px 11px;
-      border: 1px solid var(--line);
-      border-radius: 999px;
-      color: var(--accent);
-      background: rgba(105, 230, 255, .07);
-      font-size: 13px;
-      letter-spacing: .06em;
-    }
-    h1 { margin: 18px 0 14px; font-size: clamp(42px, 8vw, 82px); line-height: .98; letter-spacing: -.055em; }
-    h1 span { display: block; color: var(--accent); }
-    p { color: var(--muted); line-height: 1.75; }
-    .actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 26px; }
-    .button {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      min-height: 48px;
-      padding: 0 18px;
-      border-radius: 14px;
-      border: 1px solid var(--line);
-      color: var(--text);
-      text-decoration: none;
-      background: rgba(255,255,255,.04);
-      transition: transform .15s ease, border-color .15s ease, background .15s ease;
-    }
-    .button:hover { transform: translateY(-2px); border-color: rgba(105,230,255,.55); }
-    .button.primary { color: #04131d; background: linear-gradient(135deg, var(--accent), #b9f6ff); border: 0; font-weight: 700; }
-    .orbital {
-      position: relative;
-      aspect-ratio: 1;
-      border: 1px solid var(--line);
-      border-radius: 50%;
-      display: grid;
-      place-items: center;
-      background: radial-gradient(circle, rgba(105,230,255,.12), rgba(143,125,255,.03) 58%, transparent 59%);
-    }
-    .orbital::before, .orbital::after {
-      content: "";
-      position: absolute;
-      inset: 13%;
-      border: 1px dashed rgba(105,230,255,.28);
-      border-radius: 50%;
-      animation: spin 18s linear infinite;
-    }
-    .orbital::after { inset: 27%; animation-direction: reverse; animation-duration: 12s; }
-    .core {
-      width: 36%;
-      aspect-ratio: 1;
-      border-radius: 50%;
-      background: radial-gradient(circle at 35% 30%, white, var(--accent) 18%, var(--accent-2) 55%, transparent 71%);
-      box-shadow: 0 0 60px rgba(105,230,255,.52);
-      animation: pulse 2.2s ease-in-out infinite;
-    }
-    .stats, .days { display: grid; gap: 14px; }
-    .stats { grid-template-columns: repeat(3, 1fr); margin: 20px 0 54px; }
-    .stat, .day-card {
-      border: 1px solid var(--line);
-      border-radius: 18px;
-      background: var(--panel);
-      backdrop-filter: blur(12px);
-    }
-    .stat { padding: 18px; }
-    .stat strong { display: block; font-size: 30px; margin-top: 4px; }
-    .stat small { color: var(--muted); }
-    .section-head { display: flex; align-items: end; justify-content: space-between; gap: 20px; margin-bottom: 18px; }
-    .section-head h2 { margin: 0; font-size: 28px; }
-    .section-head span { color: var(--muted); font-size: 14px; }
-    .days { grid-template-columns: repeat(3, 1fr); }
-    .day-card { padding: 20px; min-height: 220px; display: flex; flex-direction: column; }
-    .day-card.locked { opacity: .52; }
-    .day-no { font-size: 12px; letter-spacing: .12em; color: var(--accent); }
-    .day-card h3 { margin: 12px 0 8px; font-size: 21px; }
-    .day-card p { margin: 0; font-size: 14px; }
-    .day-card .footer { margin-top: auto; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
-    .tag { font-size: 12px; color: var(--good); }
-    .play { color: var(--accent); text-decoration: none; font-weight: 700; }
-    .roadmap {
-      margin-top: 54px;
-      padding: 24px;
-      border: 1px solid var(--line);
-      border-radius: 20px;
-      background: linear-gradient(135deg, rgba(105,230,255,.08), rgba(143,125,255,.06));
-    }
-    .roadmap-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
-    .roadmap h2 { margin-top: 0; }
-    .phase strong { color: var(--accent); }
-    footer { margin-top: 42px; color: var(--muted); font-size: 13px; text-align: center; }
-    @keyframes spin { to { transform: rotate(360deg); } }
-    @keyframes pulse { 50% { transform: scale(1.08); filter: brightness(1.12); } }
-    @media (max-width: 780px) {
-      .hero { grid-template-columns: 1fr; min-height: 0; }
-      .orbital { width: min(420px, 92vw); margin: 16px auto 0; }
-      .stats, .days, .roadmap-grid { grid-template-columns: 1fr; }
-    }
-    @media (prefers-reduced-motion: reduce) { * { animation: none !important; scroll-behavior: auto !important; } }
-  </style>
+  <meta name="description" content="完整120题行测试卷游戏化：保留原卷图片、共用资料与作答进度。">
+  <title>上岸协议 · 河南行测 001</title>
+  <link rel="stylesheet" href="src/styles.css">
 </head>
 <body>
-  <main>
-    <section class="hero">
+  <noscript>本项目需要启用 JavaScript。</noscript>
+
+  <div id="intro" class="intro-screen">
+    <div class="intro-grid">
+      <section class="intro-copy">
+        <div class="eyebrow">XINGCE DAILY QUEST · PAPER 001</div>
+        <h1>上岸协议<br><span>完整试卷战役</span></h1>
+        <p class="lead">这次不是随机抽几道题。整张卷的 120 道题、原卷图形以及资料分析材料都进入同一个可持续推进的副本。</p>
+        <div class="intro-metrics">
+          <div><small>完整题量</small><strong>120</strong></div>
+          <div><small>章节</small><strong>6</strong></div>
+          <div><small>原图资产</small><strong>21</strong></div>
+          <div><small>资料组</small><strong>4</strong></div>
+        </div>
+        <div class="notice">
+          <strong>答案状态：未收录</strong>
+          <span>原 PDF 不含答案与解析。当前版本完整记录作答与进度，但不会伪造分数。</span>
+        </div>
+        <div class="intro-actions">
+          <button id="enterCampaign" class="primary" type="button">进入战役地图</button>
+          <button id="continueCampaign" class="secondary" type="button">继续上次进度</button>
+        </div>
+      </section>
+
+      <section class="campaign-orbit" aria-label="六章节战役图">
+        <div class="orbit orbit-a"></div>
+        <div class="orbit orbit-b"></div>
+        <div class="core">120</div>
+        <div class="orbit-label label-1">言语</div>
+        <div class="orbit-label label-2">数量</div>
+        <div class="orbit-label label-3">判断</div>
+        <div class="orbit-label label-4">政治</div>
+        <div class="orbit-label label-5">常识</div>
+        <div class="orbit-label label-6">资料</div>
+      </section>
+    </div>
+  </div>
+
+  <div id="campaign" class="campaign hidden">
+    <header class="topbar">
       <div>
-        <div class="badge">90 DAYS · 90 PAPERS · 90 GAME EXPERIMENTS</div>
-        <h1>Xingce <span>Daily Quest</span></h1>
-        <p>连续三个月，每天把一张行测试卷改造成一个小游戏。不是把选择题换个皮肤，而是不断试验：战斗、地图、经营、卡牌、解谜，哪一种真正能让刷题变得有意思。</p>
-        <div class="actions">
-          <a class="button primary" href="days/day-001/index.html">进入 Day 001</a>
-          <a class="button" href="README.md">查看项目说明</a>
+        <button id="backToIntro" class="ghost compact" type="button">← 项目首页</button>
+        <div class="top-title">
+          <span class="eyebrow">PAPER 001</span>
+          <strong>河南公务员录用考试《行测》</strong>
         </div>
       </div>
-      <div class="orbital" aria-label="认知核心视觉图形">
-        <div class="core"></div>
+      <div class="top-progress">
+        <span id="answeredCount">0 / 120</span>
+        <div class="progress-track"><div id="globalProgress" class="progress-fill"></div></div>
       </div>
-    </section>
-
-    <section class="stats" aria-label="项目统计">
-      <div class="stat"><small>挑战长度</small><strong>90 天</strong></div>
-      <div class="stat"><small>当前完成</small><strong>1 / 90</strong></div>
-      <div class="stat"><small>当前技术栈</small><strong>Web</strong></div>
-    </section>
-
-    <section>
-      <div class="section-head">
-        <div><h2>每日实验</h2><span>每一天都应该有不同的玩法判断。</span></div>
-        <span>当前：Day 001</span>
+      <div class="top-actions">
+        <button id="openReport" class="secondary compact" type="button">战报</button>
+        <button id="openMap" class="primary compact" type="button">章节地图</button>
       </div>
-      <div class="days">
-        <article class="day-card">
-          <div class="day-no">DAY 001</div>
-          <h3>上岸协议：认知核心</h3>
-          <p>赛博战斗式答题。答对开火，连击增伤；答错掉盾；用能量排除选项或延长时间。</p>
-          <div class="footer"><span class="tag">可试玩</span><a class="play" href="days/day-001/index.html">启动 →</a></div>
-        </article>
-        <article class="day-card locked">
-          <div class="day-no">DAY 002</div>
-          <h3>玩法待定</h3>
-          <p>优先尝试地图探索、经营模拟或卡牌构筑，不重复 Day 001 的战斗界面。</p>
-          <div class="footer"><span>未解锁</span></div>
-        </article>
-        <article class="day-card locked">
-          <div class="day-no">DAY 003–090</div>
-          <h3>持续更新</h3>
-          <p>从快速原型逐步收敛到可持续的题目数据、错题复盘和移动端体验。</p>
-          <div class="footer"><span>89 个实验位</span></div>
-        </article>
-      </div>
-    </section>
+    </header>
 
-    <section class="roadmap">
-      <h2>三个月路线</h2>
-      <div class="roadmap-grid">
-        <div class="phase"><strong>01–30</strong><p>广泛试玩法，允许粗糙，优先发现什么真正好玩。</p></div>
-        <div class="phase"><strong>31–60</strong><p>复用成熟机制，统一题目数据与每日目录结构。</p></div>
-        <div class="phase"><strong>61–90</strong><p>集中打磨最好的方向，形成完整可持续的项目。</p></div>
-      </div>
-    </section>
+    <main class="workspace">
+      <aside id="sidebar" class="sidebar">
+        <div class="sidebar-head">
+          <strong id="sidebarSectionName">言语理解与表达</strong>
+          <span id="sidebarSectionProgress">0 / 30</span>
+        </div>
+        <div id="sectionTabs" class="section-tabs"></div>
+        <div id="questionGrid" class="question-grid"></div>
+        <div class="sidebar-legend">
+          <span><i class="dot answered"></i>已作答</span>
+          <span><i class="dot marked"></i>已标记</span>
+          <span><i class="dot visual"></i>含图</span>
+        </div>
+      </aside>
 
-    <footer>Built one paper at a time · toolflow-labs</footer>
-  </main>
+      <section class="stage">
+        <div class="stage-head">
+          <div>
+            <span id="stageSection" class="chapter-chip">语言数据库</span>
+            <h2 id="questionNumber">第 1 题</h2>
+          </div>
+          <div class="stage-tools">
+            <button id="markQuestion" class="ghost" type="button">☆ 标记</button>
+            <button id="toggleSource" class="ghost" type="button">查看题图</button>
+          </div>
+        </div>
+
+        <div id="materialLayout" class="material-layout">
+          <aside id="materialPanel" class="material-panel hidden">
+            <div class="panel-head">
+              <div>
+                <span class="eyebrow">SHARED MATERIAL</span>
+                <strong id="materialTitle"></strong>
+              </div>
+              <span id="materialCounter" class="material-counter"></span>
+            </div>
+            <div id="materialScroll" class="material-scroll">
+              <p id="materialText"></p>
+              <div id="materialPages" class="source-pages"></div>
+              <div id="materialNote" class="source-note"></div>
+            </div>
+          </aside>
+
+          <article class="question-card">
+            <div id="visualAlert" class="visual-alert hidden">
+              本题依赖图形或图表，题图已自动展开。请选择 A—D 作答。
+            </div>
+            <div id="sourcePanel" class="source-panel hidden">
+              <div class="panel-head">
+                <strong>题目原图</strong>
+                <span id="sourcePageLabel"></span>
+              </div>
+              <div id="questionPages" class="source-pages"></div>
+            </div>
+
+            <div id="questionStem" class="question-stem"></div>
+            <div id="options" class="options" role="radiogroup" aria-label="题目选项"></div>
+
+            <div class="question-meta">
+              <span id="answerStatus">尚未作答</span>
+              <span id="saveStatus">进度自动保存在本机</span>
+            </div>
+
+            <div class="question-nav">
+              <button id="prevQuestion" class="secondary" type="button">上一题</button>
+              <button id="clearAnswer" class="ghost" type="button">清除答案</button>
+              <button id="nextQuestion" class="primary" type="button">下一题</button>
+            </div>
+          </article>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <dialog id="mapDialog" class="dialog">
+    <div class="dialog-head">
+      <div>
+        <span class="eyebrow">CAMPAIGN MAP</span>
+        <h2>六章战役地图</h2>
+      </div>
+      <button class="dialog-close ghost compact" type="button" data-close="mapDialog">关闭</button>
+    </div>
+    <div id="chapterMap" class="chapter-map"></div>
+  </dialog>
+
+  <dialog id="reportDialog" class="dialog">
+    <div class="dialog-head">
+      <div>
+        <span class="eyebrow">CAMPAIGN REPORT</span>
+        <h2>当前战报</h2>
+      </div>
+      <button class="dialog-close ghost compact" type="button" data-close="reportDialog">关闭</button>
+    </div>
+    <div id="reportSummary" class="report-summary"></div>
+    <div id="reportSections" class="report-sections"></div>
+    <div class="report-warning">
+      原卷未附答案，因此这里只统计完成度、选择分布与标记题，不显示正确率。
+    </div>
+    <button id="resetProgress" class="danger" type="button">清空本卷进度</button>
+  </dialog>
+
+  <dialog id="imageDialog" class="image-dialog">
+    <div class="image-dialog-head">
+      <span id="imageDialogTitle">题目原图</span>
+      <button class="ghost compact" type="button" data-close="imageDialog">关闭</button>
+    </div>
+    <img id="zoomedImage" alt="放大的题目原图">
+  </dialog>
+
+  <script src="papers/henan-xingce-001/paper-data.js"></script>
+  <script src="papers/henan-xingce-001/visuals/visuals-01.js"></script>
+  <script src="papers/henan-xingce-001/visuals/visuals-02.js"></script>
+  <script src="papers/henan-xingce-001/visuals/visuals-03.js"></script>
+  <script src="papers/henan-xingce-001/visuals/visuals-04.js"></script>
+  <script src="papers/henan-xingce-001/visuals/visuals-05.js"></script>
+  <script src="papers/henan-xingce-001/visuals/visuals-06.js"></script>
+  <script src="papers/henan-xingce-001/visuals/visuals-07.js"></script>
+  <script src="src/app.js"></script>
 </body>
 </html>
