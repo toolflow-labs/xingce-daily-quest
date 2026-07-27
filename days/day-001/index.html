@@ -1,0 +1,294 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Day 001：把行测题改造成赛博战斗答题游戏。">
+  <title>Day 001 · 上岸协议</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #050b16;
+      --panel: rgba(11, 23, 44, .88);
+      --panel-2: rgba(16, 34, 62, .92);
+      --line: rgba(109, 206, 255, .23);
+      --text: #edf7ff;
+      --muted: #95abc7;
+      --cyan: #63e4ff;
+      --purple: #927cff;
+      --green: #67f6bb;
+      --red: #ff728a;
+      --yellow: #ffd86e;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 18% 8%, rgba(40, 128, 255, .23), transparent 30%),
+        radial-gradient(circle at 82% 12%, rgba(146, 124, 255, .18), transparent 26%),
+        var(--bg);
+      overflow-x: hidden;
+    }
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      opacity: .25;
+      background-image:
+        linear-gradient(rgba(99,228,255,.07) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(99,228,255,.07) 1px, transparent 1px);
+      background-size: 32px 32px;
+    }
+    button, a { font: inherit; }
+    button { cursor: pointer; }
+    .app { width: min(1060px, calc(100% - 24px)); margin: 0 auto; padding: 18px 0 40px; position: relative; }
+    .topbar { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-bottom: 14px; }
+    .back { color: var(--muted); text-decoration: none; font-size: 14px; }
+    .back:hover { color: var(--cyan); }
+    .day { color: var(--cyan); font-size: 12px; letter-spacing: .14em; }
+    .screen { display: none; }
+    .screen.active { display: block; }
+    .panel {
+      border: 1px solid var(--line);
+      background: var(--panel);
+      border-radius: 22px;
+      backdrop-filter: blur(14px);
+    }
+    .intro {
+      min-height: 650px;
+      display: grid;
+      grid-template-columns: 1.06fr .94fr;
+      gap: 30px;
+      align-items: center;
+      padding: 34px;
+      overflow: hidden;
+      position: relative;
+    }
+    .intro::after {
+      content: "";
+      position: absolute;
+      width: 480px;
+      height: 480px;
+      border-radius: 50%;
+      right: -260px;
+      bottom: -270px;
+      border: 1px solid var(--line);
+      box-shadow: 0 0 90px rgba(99,228,255,.12);
+    }
+    .badge {
+      display: inline-flex;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: rgba(99,228,255,.09);
+      border: 1px solid var(--line);
+      color: var(--cyan);
+      font-size: 13px;
+    }
+    h1 { margin: 16px 0 12px; font-size: clamp(40px, 7vw, 72px); line-height: 1; letter-spacing: -.055em; }
+    h1 span { color: var(--cyan); }
+    p { color: var(--muted); line-height: 1.75; }
+    .rules { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin: 22px 0; }
+    .rule { padding: 13px; border: 1px solid var(--line); border-radius: 14px; background: rgba(255,255,255,.025); }
+    .rule strong { display: block; margin-bottom: 3px; }
+    .rule small { color: var(--muted); }
+    .primary, .secondary {
+      min-height: 48px;
+      padding: 0 18px;
+      border-radius: 14px;
+      border: 1px solid var(--line);
+      color: var(--text);
+      background: rgba(255,255,255,.04);
+    }
+    .primary { border: 0; color: #04131d; font-weight: 800; background: linear-gradient(135deg, var(--cyan), #c4f8ff); }
+    .primary:hover, .secondary:hover { transform: translateY(-1px); }
+    .battle-visual { position: relative; min-height: 380px; display: grid; place-items: center; }
+    .boss-orbit { width: min(360px, 80vw); aspect-ratio: 1; border: 1px dashed rgba(99,228,255,.32); border-radius: 50%; display: grid; place-items: center; animation: spin 15s linear infinite; }
+    .boss-orbit::before { content: ""; width: 63%; aspect-ratio: 1; border: 1px dashed rgba(146,124,255,.38); border-radius: 50%; animation: spin 9s linear infinite reverse; }
+    .boss-core { position: absolute; width: 112px; aspect-ratio: 1; border-radius: 50%; background: radial-gradient(circle at 35% 30%, white, var(--cyan) 14%, var(--purple) 54%, transparent 72%); box-shadow: 0 0 70px rgba(99,228,255,.55); animation: pulse 2s ease-in-out infinite; }
+    .ship { position: absolute; left: 2%; bottom: 9%; width: 120px; animation: float 2.4s ease-in-out infinite; }
+    .ship svg { width: 100%; height: auto; filter: drop-shadow(0 0 18px rgba(99,228,255,.38)); }
+    .hud { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 12px; }
+    .metric { padding: 13px 15px; border: 1px solid var(--line); border-radius: 15px; background: var(--panel); }
+    .metric small { color: var(--muted); }
+    .metric strong { display: block; margin-top: 3px; font-size: 24px; }
+    .battlefield { position: relative; min-height: 155px; padding: 14px 18px; display: flex; align-items: center; justify-content: space-between; overflow: hidden; }
+    .fighter, .target { width: 120px; z-index: 2; }
+    .fighter svg { width: 100%; }
+    .target { display: grid; place-items: center; }
+    .mini-core { width: 74px; aspect-ratio: 1; border-radius: 50%; background: radial-gradient(circle at 35% 30%, white, var(--cyan) 15%, var(--purple) 57%, transparent 73%); box-shadow: 0 0 40px rgba(99,228,255,.45); animation: pulse 1.9s ease-in-out infinite; }
+    .beam { position: absolute; left: 19%; right: 19%; top: 50%; height: 4px; transform-origin: left; transform: scaleX(0); opacity: 0; background: linear-gradient(90deg, var(--cyan), white, var(--purple)); box-shadow: 0 0 18px var(--cyan); }
+    .fire .beam { animation: beam .48s ease-out; }
+    .hit .fighter { animation: shake .4s ease-in-out; }
+    .bars { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 12px 0; }
+    .bar-head { display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 13px; color: var(--muted); }
+    .bar-track { height: 10px; background: rgba(255,255,255,.06); border-radius: 999px; overflow: hidden; }
+    .bar-fill { height: 100%; width: 100%; border-radius: 999px; transition: width .35s ease; }
+    #shieldBar { background: var(--cyan); }
+    #bossBar { background: linear-gradient(90deg, var(--purple), var(--red)); }
+    .question { padding: 20px; }
+    .q-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; }
+    .category { display: inline-flex; padding: 6px 10px; border-radius: 999px; color: var(--cyan); background: rgba(99,228,255,.08); border: 1px solid var(--line); font-size: 12px; }
+    .source { color: var(--muted); font-size: 13px; margin-left: 8px; }
+    .timer { color: var(--yellow); font-weight: 800; }
+    .timer-track { height: 8px; border-radius: 999px; background: rgba(255,255,255,.06); margin-top: 12px; overflow: hidden; }
+    #timerBar { height: 100%; width: 100%; background: linear-gradient(90deg, var(--cyan), var(--yellow)); transition: width .2s linear; }
+    #questionText { font-size: 18px; line-height: 1.7; margin: 18px 0; color: var(--text); }
+    .options { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .option {
+      min-height: 64px;
+      padding: 13px 15px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: rgba(255,255,255,.025);
+      color: var(--text);
+      text-align: left;
+      transition: transform .13s ease, border-color .13s ease, background .13s ease;
+    }
+    .option:hover:not(:disabled) { transform: translateY(-1px); border-color: rgba(99,228,255,.65); background: rgba(99,228,255,.06); }
+    .option:disabled { cursor: default; opacity: .55; }
+    .option.correct { opacity: 1; border-color: var(--green); background: rgba(103,246,187,.11); }
+    .option.wrong { opacity: 1; border-color: var(--red); background: rgba(255,114,138,.11); }
+    .feedback { display: none; margin-top: 13px; padding: 12px 14px; border-radius: 13px; border: 1px solid var(--line); color: var(--muted); background: rgba(99,228,255,.05); line-height: 1.6; }
+    .feedback.show { display: block; }
+    .feedback strong { color: var(--text); }
+    .skills { display: grid; grid-template-columns: 1fr 1fr auto; gap: 10px; margin-top: 12px; }
+    .skill { min-height: 60px; padding: 10px 13px; border: 1px solid var(--line); border-radius: 14px; color: var(--text); text-align: left; background: var(--panel); }
+    .skill:disabled { opacity: .4; cursor: default; }
+    .skill b, .skill small { display: block; }
+    .skill small { color: var(--muted); margin-top: 3px; }
+    .energy { display: grid; place-items: center; min-width: 100px; border: 1px solid var(--line); border-radius: 14px; background: var(--panel-2); }
+    .energy small { color: var(--muted); }
+    .energy strong { font-size: 22px; color: var(--yellow); }
+    .result { min-height: 650px; padding: 36px; display: grid; place-items: center; text-align: center; }
+    .rank { width: 145px; aspect-ratio: 1; margin: 0 auto 18px; border: 8px solid var(--cyan); border-radius: 50%; display: grid; place-items: center; background: var(--panel-2); box-shadow: 0 0 45px rgba(99,228,255,.2); }
+    .rank strong { font-size: 54px; line-height: 1; }
+    .result h2 { margin: 0; font-size: 34px; }
+    .result-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 24px 0; width: min(650px, 100%); }
+    .result .metric { text-align: left; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    @keyframes pulse { 50% { transform: scale(1.08); filter: brightness(1.12); } }
+    @keyframes float { 50% { transform: translateY(7px); } }
+    @keyframes beam { 0% { opacity: 0; transform: scaleX(.02); } 35% { opacity: 1; transform: scaleX(1); } 100% { opacity: 0; transform: scaleX(1); } }
+    @keyframes shake { 25% { transform: translateX(-9px); } 75% { transform: translateX(9px); } }
+    @media (max-width: 760px) {
+      .intro { grid-template-columns: 1fr; padding: 22px; }
+      .battle-visual { min-height: 320px; }
+      .hud { grid-template-columns: 1fr 1fr; }
+      .options { grid-template-columns: 1fr; }
+      .result-stats { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 520px) {
+      .rules, .bars, .skills { grid-template-columns: 1fr; }
+      .energy { min-height: 58px; }
+      .battlefield { min-height: 125px; }
+      .fighter, .target { width: 88px; }
+      .mini-core { width: 58px; }
+    }
+    @media (prefers-reduced-motion: reduce) { * { animation: none !important; } }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <div class="topbar">
+      <a class="back" href="../../index.html">← 返回 90 天计划</a>
+      <span class="day">DAY 001</span>
+    </div>
+
+    <section id="startScreen" class="screen active panel intro">
+      <div>
+        <span class="badge">行测 × 赛博战斗</span>
+        <h1>上岸协议<br><span>认知核心</span></h1>
+        <p>驾驶“上岸号”进入认知战场。你不只是在选择答案：每一次判断都会改变战局。</p>
+        <div class="rules">
+          <div class="rule"><strong>答对开火</strong><small>连续答对，伤害逐步提高</small></div>
+          <div class="rule"><strong>答错掉盾</strong><small>超时也会受到同等伤害</small></div>
+          <div class="rule"><strong>技能决策</strong><small>消耗能量排除干扰或延长时间</small></div>
+          <div class="rule"><strong>8 题一局</strong><small>先做一个真正可玩的短循环</small></div>
+        </div>
+        <button id="startButton" class="primary" type="button">启动上岸协议</button>
+      </div>
+      <div class="battle-visual" aria-label="飞船与认知核心对战图">
+        <div class="boss-orbit"></div>
+        <div class="boss-core"></div>
+        <div class="ship">
+          <svg viewBox="0 0 150 86" role="img" aria-label="上岸号飞船">
+            <path d="M8 43 75 7l67 36-67 36Z" fill="rgba(99,228,255,.13)" stroke="#63e4ff" stroke-width="3"/>
+            <path d="m37 43 38-20 38 20-38 20Z" fill="#63e4ff"/>
+            <path d="M8 43 0 33v20Z" fill="#927cff"/>
+          </svg>
+        </div>
+      </div>
+    </section>
+
+    <section id="gameScreen" class="screen">
+      <div class="hud">
+        <div class="metric"><small>护盾</small><strong id="shieldValue">100</strong></div>
+        <div class="metric"><small>认知核心</small><strong id="bossValue">100</strong></div>
+        <div class="metric"><small>连击</small><strong id="comboValue">0</strong></div>
+        <div class="metric"><small>积分</small><strong id="scoreValue">0</strong></div>
+      </div>
+
+      <div id="battlefield" class="panel battlefield">
+        <div class="fighter">
+          <svg viewBox="0 0 150 86" role="img" aria-label="上岸号飞船">
+            <path d="M8 43 75 7l67 36-67 36Z" fill="rgba(99,228,255,.13)" stroke="#63e4ff" stroke-width="3"/>
+            <path d="m37 43 38-20 38 20-38 20Z" fill="#63e4ff"/>
+            <path d="M8 43 0 33v20Z" fill="#927cff"/>
+          </svg>
+        </div>
+        <div class="beam"></div>
+        <div><span id="progressValue">1 / 8</span></div>
+        <div class="target"><div class="mini-core"></div></div>
+      </div>
+
+      <div class="bars">
+        <div>
+          <div class="bar-head"><span>上岸号护盾</span><span id="shieldPercent">100%</span></div>
+          <div class="bar-track"><div id="shieldBar" class="bar-fill"></div></div>
+        </div>
+        <div>
+          <div class="bar-head"><span>Boss 完整度</span><span id="bossPercent">100%</span></div>
+          <div class="bar-track"><div id="bossBar" class="bar-fill"></div></div>
+        </div>
+      </div>
+
+      <section class="panel question">
+        <div class="q-head">
+          <div><span id="categoryValue" class="category">语义锁定</span><span id="sourceValue" class="source">代表题 1</span></div>
+          <div>剩余 <span id="timerValue" class="timer">20</span> 秒</div>
+        </div>
+        <div class="timer-track"><div id="timerBar"></div></div>
+        <p id="questionText"></p>
+        <div id="options" class="options"></div>
+        <div id="feedback" class="feedback" aria-live="polite"></div>
+      </section>
+
+      <div class="skills">
+        <button id="eliminateButton" class="skill" type="button"><b>排除干扰</b><small>随机屏蔽一个错误项 · 25 能量</small></button>
+        <button id="timeButton" class="skill" type="button"><b>时间折跃</b><small>增加 8 秒 · 20 能量</small></button>
+        <div class="energy"><small>能量</small><strong id="energyValue">50</strong></div>
+      </div>
+    </section>
+
+    <section id="resultScreen" class="screen panel result">
+      <div>
+        <div class="rank"><div><small>评级</small><br><strong id="rankValue">B</strong></div></div>
+        <h2 id="resultTitle">本轮航程结束</h2>
+        <p id="resultText">再来一轮，把薄弱模块打穿。</p>
+        <div class="result-stats">
+          <div class="metric"><small>答对</small><strong id="correctValue">0 / 8</strong></div>
+          <div class="metric"><small>积分</small><strong id="finalScoreValue">0</strong></div>
+          <div class="metric"><small>最高连击</small><strong id="maxComboValue">0</strong></div>
+          <div class="metric"><small>剩余护盾</small><strong id="finalShieldValue">0</strong></div>
+        </div>
+        <button id="restartButton" class="primary" type="button">再次突围</button>
+      </div>
+    </section>
+  </main>
+  <script src="game.js"></script>
+</body>
+</html>
