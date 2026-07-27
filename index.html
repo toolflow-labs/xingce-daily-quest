@@ -1,0 +1,213 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="连续 90 天，把每天一张行测试卷做成一个小游戏。">
+  <title>Xingce Daily Quest</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #07101f;
+      --panel: rgba(12, 25, 48, 0.82);
+      --line: rgba(124, 173, 255, 0.22);
+      --text: #edf4ff;
+      --muted: #9db0cb;
+      --accent: #69e6ff;
+      --accent-2: #8f7dff;
+      --good: #6fffc1;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 18% 12%, rgba(55, 136, 255, .24), transparent 32%),
+        radial-gradient(circle at 80% 16%, rgba(143, 125, 255, .18), transparent 26%),
+        linear-gradient(180deg, #07101f 0%, #091426 100%);
+    }
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      opacity: .3;
+      background-image:
+        linear-gradient(rgba(105, 230, 255, .06) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(105, 230, 255, .06) 1px, transparent 1px);
+      background-size: 34px 34px;
+    }
+    main { width: min(1080px, calc(100% - 32px)); margin: 0 auto; padding: 48px 0 72px; }
+    .hero {
+      display: grid;
+      grid-template-columns: 1.2fr .8fr;
+      gap: 28px;
+      align-items: center;
+      min-height: 480px;
+    }
+    .badge {
+      display: inline-flex;
+      gap: 8px;
+      align-items: center;
+      padding: 7px 11px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      color: var(--accent);
+      background: rgba(105, 230, 255, .07);
+      font-size: 13px;
+      letter-spacing: .06em;
+    }
+    h1 { margin: 18px 0 14px; font-size: clamp(42px, 8vw, 82px); line-height: .98; letter-spacing: -.055em; }
+    h1 span { display: block; color: var(--accent); }
+    p { color: var(--muted); line-height: 1.75; }
+    .actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 26px; }
+    .button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 48px;
+      padding: 0 18px;
+      border-radius: 14px;
+      border: 1px solid var(--line);
+      color: var(--text);
+      text-decoration: none;
+      background: rgba(255,255,255,.04);
+      transition: transform .15s ease, border-color .15s ease, background .15s ease;
+    }
+    .button:hover { transform: translateY(-2px); border-color: rgba(105,230,255,.55); }
+    .button.primary { color: #04131d; background: linear-gradient(135deg, var(--accent), #b9f6ff); border: 0; font-weight: 700; }
+    .orbital {
+      position: relative;
+      aspect-ratio: 1;
+      border: 1px solid var(--line);
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      background: radial-gradient(circle, rgba(105,230,255,.12), rgba(143,125,255,.03) 58%, transparent 59%);
+    }
+    .orbital::before, .orbital::after {
+      content: "";
+      position: absolute;
+      inset: 13%;
+      border: 1px dashed rgba(105,230,255,.28);
+      border-radius: 50%;
+      animation: spin 18s linear infinite;
+    }
+    .orbital::after { inset: 27%; animation-direction: reverse; animation-duration: 12s; }
+    .core {
+      width: 36%;
+      aspect-ratio: 1;
+      border-radius: 50%;
+      background: radial-gradient(circle at 35% 30%, white, var(--accent) 18%, var(--accent-2) 55%, transparent 71%);
+      box-shadow: 0 0 60px rgba(105,230,255,.52);
+      animation: pulse 2.2s ease-in-out infinite;
+    }
+    .stats, .days { display: grid; gap: 14px; }
+    .stats { grid-template-columns: repeat(3, 1fr); margin: 20px 0 54px; }
+    .stat, .day-card {
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: var(--panel);
+      backdrop-filter: blur(12px);
+    }
+    .stat { padding: 18px; }
+    .stat strong { display: block; font-size: 30px; margin-top: 4px; }
+    .stat small { color: var(--muted); }
+    .section-head { display: flex; align-items: end; justify-content: space-between; gap: 20px; margin-bottom: 18px; }
+    .section-head h2 { margin: 0; font-size: 28px; }
+    .section-head span { color: var(--muted); font-size: 14px; }
+    .days { grid-template-columns: repeat(3, 1fr); }
+    .day-card { padding: 20px; min-height: 220px; display: flex; flex-direction: column; }
+    .day-card.locked { opacity: .52; }
+    .day-no { font-size: 12px; letter-spacing: .12em; color: var(--accent); }
+    .day-card h3 { margin: 12px 0 8px; font-size: 21px; }
+    .day-card p { margin: 0; font-size: 14px; }
+    .day-card .footer { margin-top: auto; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+    .tag { font-size: 12px; color: var(--good); }
+    .play { color: var(--accent); text-decoration: none; font-weight: 700; }
+    .roadmap {
+      margin-top: 54px;
+      padding: 24px;
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      background: linear-gradient(135deg, rgba(105,230,255,.08), rgba(143,125,255,.06));
+    }
+    .roadmap-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+    .roadmap h2 { margin-top: 0; }
+    .phase strong { color: var(--accent); }
+    footer { margin-top: 42px; color: var(--muted); font-size: 13px; text-align: center; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    @keyframes pulse { 50% { transform: scale(1.08); filter: brightness(1.12); } }
+    @media (max-width: 780px) {
+      .hero { grid-template-columns: 1fr; min-height: 0; }
+      .orbital { width: min(420px, 92vw); margin: 16px auto 0; }
+      .stats, .days, .roadmap-grid { grid-template-columns: 1fr; }
+    }
+    @media (prefers-reduced-motion: reduce) { * { animation: none !important; scroll-behavior: auto !important; } }
+  </style>
+</head>
+<body>
+  <main>
+    <section class="hero">
+      <div>
+        <div class="badge">90 DAYS · 90 PAPERS · 90 GAME EXPERIMENTS</div>
+        <h1>Xingce <span>Daily Quest</span></h1>
+        <p>连续三个月，每天把一张行测试卷改造成一个小游戏。不是把选择题换个皮肤，而是不断试验：战斗、地图、经营、卡牌、解谜，哪一种真正能让刷题变得有意思。</p>
+        <div class="actions">
+          <a class="button primary" href="days/day-001/index.html">进入 Day 001</a>
+          <a class="button" href="README.md">查看项目说明</a>
+        </div>
+      </div>
+      <div class="orbital" aria-label="认知核心视觉图形">
+        <div class="core"></div>
+      </div>
+    </section>
+
+    <section class="stats" aria-label="项目统计">
+      <div class="stat"><small>挑战长度</small><strong>90 天</strong></div>
+      <div class="stat"><small>当前完成</small><strong>1 / 90</strong></div>
+      <div class="stat"><small>当前技术栈</small><strong>Web</strong></div>
+    </section>
+
+    <section>
+      <div class="section-head">
+        <div><h2>每日实验</h2><span>每一天都应该有不同的玩法判断。</span></div>
+        <span>当前：Day 001</span>
+      </div>
+      <div class="days">
+        <article class="day-card">
+          <div class="day-no">DAY 001</div>
+          <h3>上岸协议：认知核心</h3>
+          <p>赛博战斗式答题。答对开火，连击增伤；答错掉盾；用能量排除选项或延长时间。</p>
+          <div class="footer"><span class="tag">可试玩</span><a class="play" href="days/day-001/index.html">启动 →</a></div>
+        </article>
+        <article class="day-card locked">
+          <div class="day-no">DAY 002</div>
+          <h3>玩法待定</h3>
+          <p>优先尝试地图探索、经营模拟或卡牌构筑，不重复 Day 001 的战斗界面。</p>
+          <div class="footer"><span>未解锁</span></div>
+        </article>
+        <article class="day-card locked">
+          <div class="day-no">DAY 003–090</div>
+          <h3>持续更新</h3>
+          <p>从快速原型逐步收敛到可持续的题目数据、错题复盘和移动端体验。</p>
+          <div class="footer"><span>89 个实验位</span></div>
+        </article>
+      </div>
+    </section>
+
+    <section class="roadmap">
+      <h2>三个月路线</h2>
+      <div class="roadmap-grid">
+        <div class="phase"><strong>01–30</strong><p>广泛试玩法，允许粗糙，优先发现什么真正好玩。</p></div>
+        <div class="phase"><strong>31–60</strong><p>复用成熟机制，统一题目数据与每日目录结构。</p></div>
+        <div class="phase"><strong>61–90</strong><p>集中打磨最好的方向，形成完整可持续的项目。</p></div>
+      </div>
+    </section>
+
+    <footer>Built one paper at a time · toolflow-labs</footer>
+  </main>
+</body>
+</html>
