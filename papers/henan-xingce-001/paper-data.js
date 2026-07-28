@@ -17,7 +17,7 @@
 
   document.write(
     files
-      .map((file) => `<script src="${base}${file}"><\\/script>`)
+      .map((file) => '<script src="' + base + file + '"></' + 'script>')
       .join("")
   );
 })();
